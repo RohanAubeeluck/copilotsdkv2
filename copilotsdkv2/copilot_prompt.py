@@ -6,7 +6,7 @@ for easier prompting and interaction with Copilot.
 """
 
 import asyncio
-from typing import Optional, Callable, Dict, Any, List
+from typing import Optional, Dict
 from copilot import CopilotClient
 
 
@@ -197,21 +197,27 @@ class CopilotPrompt:
         response_text = []
         done_event = asyncio.Event()
         error_container = []
+        handler_lock = asyncio.Lock()
 
         def on_event(event):
             """Handle events from the session."""
-            try:
-                if event.type.value == "assistant.message":
-                    if hasattr(event.data, 'content') and event.data.content:
-                        response_text.append(event.data.content)
-                elif event.type.value == "session.idle":
-                    done_event.set()
-                elif event.type.value == "error":
-                    error_container.append(event.data)
-                    done_event.set()
-            except Exception as e:
-                error_container.append(e)
-                done_event.set()
+            async def process_event():
+                async with handler_lock:
+                    try:
+                        if event.type.value == "assistant.message":
+                            if hasattr(event.data, 'content') and event.data.content:
+                                response_text.append(event.data.content)
+                        elif event.type.value == "session.idle":
+                            done_event.set()
+                        elif event.type.value == "error":
+                            error_container.append(event.data)
+                            done_event.set()
+                    except Exception as e:
+                        error_container.append(e)
+                        done_event.set()
+
+            # Schedule the async handler in the event loop
+            asyncio.create_task(process_event())
 
         self._session.on(on_event)
 
@@ -266,24 +272,30 @@ class CopilotPrompt:
         chunk_queue = asyncio.Queue()
         done_event = asyncio.Event()
         error_container = []
+        handler_lock = asyncio.Lock()
 
         def on_event(event):
             """Handle events from the session."""
-            try:
-                if event.type.value == "assistant.message":
-                    if hasattr(event.data, 'content') and event.data.content:
-                        asyncio.create_task(chunk_queue.put(event.data.content))
-                elif event.type.value == "session.idle":
-                    asyncio.create_task(chunk_queue.put(None))
-                    done_event.set()
-                elif event.type.value == "error":
-                    error_container.append(event.data)
-                    asyncio.create_task(chunk_queue.put(None))
-                    done_event.set()
-            except Exception as e:
-                error_container.append(e)
-                asyncio.create_task(chunk_queue.put(None))
-                done_event.set()
+            async def process_event():
+                async with handler_lock:
+                    try:
+                        if event.type.value == "assistant.message":
+                            if hasattr(event.data, 'content') and event.data.content:
+                                await chunk_queue.put(event.data.content)
+                        elif event.type.value == "session.idle":
+                            await chunk_queue.put(None)
+                            done_event.set()
+                        elif event.type.value == "error":
+                            error_container.append(event.data)
+                            await chunk_queue.put(None)
+                            done_event.set()
+                    except Exception as e:
+                        error_container.append(e)
+                        await chunk_queue.put(None)
+                        done_event.set()
+
+            # Schedule the async handler in the event loop
+            asyncio.create_task(process_event())
 
         self._session.on(on_event)
 
