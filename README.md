@@ -2,6 +2,21 @@
 
 A Python SDK and demo application for interacting with GitHub Copilot Chat API.
 
+## Quick Start
+
+```bash
+# Clone and setup
+git clone https://github.com/RohanAubeeluck/copilotsdkv2.git
+cd copilotsdkv2
+pip install -r requirements.txt
+
+# Set your GitHub token
+export GITHUB_TOKEN="your_github_oauth_token_here"
+
+# Run the demo app
+python app.py "Explain what Python decorators are"
+```
+
 ## Features
 
 - 🤖 Send prompts to GitHub Copilot Chat and receive AI-powered responses
