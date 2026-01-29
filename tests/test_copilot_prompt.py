@@ -7,7 +7,7 @@ Note: These tests use mocking to avoid requiring actual Copilot authentication.
 
 import asyncio
 import pytest
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import Mock, AsyncMock, patch
 from copilotsdkv2 import CopilotPrompt
 
 

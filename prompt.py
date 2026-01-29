@@ -1,8 +1,13 @@
 """CLI for the CopilotPrompt wrapper.
 
-This is a lightweight command-line interface so you can run:
+This is a lightweight command-line interface.
 
+Run from an installed package:
+  python -m copilotsdkv2 "your prompt"
   python -m copilotsdkv2.cli "your prompt"
+
+Or run from the repo root without installing:
+  python prompt.py "your prompt"
 
 It relies on the `github-copilot-sdk` package, which typically authenticates
 via the GitHub Copilot CLI login flow (per the SDK's own docs).
@@ -12,9 +17,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import sys
 
-from .copilot_prompt import CopilotPrompt
+try:
+    # When executed as a package module (python -m ...)
+    from .copilot_prompt import CopilotPrompt
+except ImportError:  # pragma: no cover
+    # When executed directly (python prompt.py ...)
+    from copilot_prompt import CopilotPrompt
 
 
 async def _run(prompt: str, model: str, stream: bool) -> int:
