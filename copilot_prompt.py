@@ -168,7 +168,7 @@ class CopilotPrompt:
     async def send_prompt(
         self,
         prompt: str,
-        timeout: Optional[float] = 30.0
+        timeout: Optional[float] = 600.0
     ) -> str:
         """
         Send a prompt to Copilot and return the complete response.
