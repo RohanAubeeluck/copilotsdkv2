@@ -16,6 +16,9 @@ def get_copilot_token(github_token=None):
     This function exchanges a GitHub OAuth token for a Copilot-specific token
     that can be used to interact with the Copilot API.
     
+    WARNING: This uses an internal GitHub API endpoint (copilot_internal/v2/token)
+    which is not officially documented and may change without notice.
+    
     Args:
         github_token (str, optional): GitHub OAuth token. If not provided,
                                      will check GITHUB_TOKEN env var, then
@@ -25,6 +28,7 @@ def get_copilot_token(github_token=None):
         str: Copilot bearer token
         
     Raises:
+        ValueError: If token is not configured
         Exception: If token exchange fails
     """
     # Priority: parameter > environment variable > hardcoded placeholder
@@ -55,6 +59,6 @@ def get_copilot_token(github_token=None):
         response.raise_for_status()
         return response.json()["token"]
     except requests.exceptions.RequestException as e:
-        raise Exception(f"Failed to get Copilot token: {e}")
-    except KeyError:
-        raise Exception("Unexpected response format from Copilot token API")
+        raise Exception(f"Failed to get Copilot token: {e}") from e
+    except KeyError as e:
+        raise Exception("Unexpected response format from Copilot token API") from e

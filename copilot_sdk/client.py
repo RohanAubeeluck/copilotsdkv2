@@ -24,13 +24,15 @@ class CopilotClient:
         self.copilot_token = get_copilot_token(self.github_token)
         return self.copilot_token
     
-    def send_chat_message(self, prompt, model="gpt-4"):
+    def send_chat_message(self, prompt, model="gpt-4", temperature=0.7, max_tokens=1000):
         """
         Send a chat message to GitHub Copilot.
         
         Args:
             prompt (str): The prompt/message to send
             model (str): The model to use (default: gpt-4)
+            temperature (float): Sampling temperature, 0-1 (default: 0.7)
+            max_tokens (int): Maximum tokens in response (default: 1000)
         
         Returns:
             dict: Response from the Copilot API
@@ -41,6 +43,8 @@ class CopilotClient:
         if not self.copilot_token:
             self.authenticate()
         
+        # Note: These headers mimic the official Copilot VS Code extension
+        # Version strings are hardcoded but should work with the API
         headers = {
             "Authorization": f"Bearer {self.copilot_token}",
             "Content-Type": "application/json",
@@ -57,8 +61,8 @@ class CopilotClient:
                 {"role": "user", "content": prompt}
             ],
             "model": model,
-            "temperature": 0.7,
-            "max_tokens": 1000,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
             "stream": False
         }
         
@@ -72,7 +76,7 @@ class CopilotClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to send chat message: {e}")
+            raise Exception(f"Failed to send chat message: {e}") from e
     
     def get_completion_text(self, response):
         """
@@ -83,8 +87,15 @@ class CopilotClient:
             
         Returns:
             str: The completion text
+            
+        Raises:
+            Exception: If response format is unexpected
         """
         try:
             return response["choices"][0]["message"]["content"]
-        except (KeyError, IndexError):
-            return str(response)
+        except (KeyError, IndexError) as e:
+            raise Exception(
+                f"Unexpected API response format. "
+                f"Expected 'choices[0].message.content' structure. "
+                f"Got: {response}"
+            ) from e

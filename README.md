@@ -152,6 +152,14 @@ This SDK uses the following GitHub Copilot API endpoints:
 - **Token Exchange**: `https://api.github.com/copilot_internal/v2/token`
 - **Chat Completions**: `https://api.githubcopilot.com/chat/completions`
 
+**⚠️ Important Note About API Stability:**
+
+The token exchange endpoint uses an internal GitHub API (`copilot_internal/v2/token`) that is not officially documented. This means:
+- The API may change without notice
+- It may stop working if GitHub modifies their internal infrastructure
+- This SDK is intended for demonstration and educational purposes
+- For production use, consider using official GitHub APIs when they become available
+
 ## Requirements
 
 - Python 3.7+
